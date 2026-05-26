@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rack Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- Background orbs -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <!-- Setup Modal -->
+    <div id="setupModal" class="modal-overlay active">
+        <div class="modal setup-modal">
+            <div class="setup-logo">
+                <div class="logo-mark">&#11043;</div>
+                <h1>Rack Management</h1>
+                <p>Configure your storage system to get started</p>
+            </div>
+            <form id="setupForm">
+                <div class="form-group">
+                    <label>Rack Name</label>
+                    <input type="text" id="rackName" placeholder="e.g. Warehouse A" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Shelves</label>
+                        <input type="number" id="numShelves" value="4" min="1" max="20" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Items / Shelf</label>
+                        <input type="number" id="shelfCapacity" value="10" min="1" max="100" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    Initialize Rack &nbsp;→
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" class="hidden">
+
+        <header>
+            <div class="header-left">
+                <div class="header-brand">
+                    <span class="brand-icon">&#11043;</span>
+                    <div>
+                        <h1 id="rackTitle">Rack System</h1>
+                        <span id="headerStats" class="header-sub">0 / 0 items</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="header-progress-wrap">
+                    <div class="header-progress-bar">
+                        <div id="overallFill" class="header-progress-fill"></div>
+                    </div>
+                    <span id="overallPct" class="header-pct">0%</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-ghost" onclick="openSearch()">&#128269; Search</button>
+                <button class="btn btn-ghost" onclick="openCapacity()">&#128202; Report</button>
+                <button class="btn btn-primary" onclick="openAddItem()">+ Add Item</button>
+            </div>
+        </header>
+
+        <main>
+            <div id="shelvesGrid" class="shelves-grid"></div>
+        </main>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div id="addModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Add Item</h2>
+                <button class="close-btn" onclick="closeModal('addModal')">&times;</button>
+            </div>
+            <form id="addForm">
+                <div class="form-group">
+                    <label>Item Name</label>
+                    <input type="text" id="itemName" placeholder="e.g. Cardboard Box" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <input type="text" id="itemCategory" placeholder="General">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Weight (kg)</label>
+                        <input type="number" id="itemWeight" step="0.1" min="0" placeholder="0.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" id="itemQuantity" min="1" value="1" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Shelf Assignment</label>
+                    <select id="itemShelf"></select>
+                </div>
+                <div class="form-row mt-sm">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('addModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Remove Item Modal -->
+    <div id="removeModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Remove Item</h2>
+                <button class="close-btn" onclick="closeModal('removeModal')">&times;</button>
+            </div>
+            <form id="removeForm">
+                <div class="form-group">
+                    <label>Item Name</label>
+                    <input type="text" id="removeName" placeholder="Exact item name" required>
+                </div>
+                <div class="form-group">
+                    <label>Shelf (optional)</label>
+                    <select id="removeShelf"></select>
+                </div>
+                <div class="form-row mt-sm">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('removeModal')">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Remove</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search Panel -->
+    <div id="searchPanel" class="side-panel">
+        <div class="panel-header">
+            <h2>Search Inventory</h2>
+            <button class="close-btn" onclick="closePanel('searchPanel')">&times;</button>
+        </div>
+        <div class="panel-body">
+            <div class="search-input-wrap">
+                <span class="search-icon">&#128269;</span>
+                <input type="text" id="searchInput" placeholder="Search by name or category..." oninput="doSearch()">
+            </div>
+            <div id="searchResults">
+                <p class="empty-hint">Start typing to search...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Capacity Panel -->
+    <div id="capacityPanel" class="side-panel">
+        <div class="panel-header">
+            <h2>Capacity Report</h2>
+            <button class="close-btn" onclick="closePanel('capacityPanel')">&times;</button>
+        </div>
+        <div class="panel-body" id="capacityBody"></div>
+    </div>
+
+    <!-- Backdrop -->
+    <div id="panelBackdrop" class="panel-backdrop" onclick="closeAllPanels()"></div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+</html>
